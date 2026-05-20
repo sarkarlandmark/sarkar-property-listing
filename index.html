@@ -1,46 +1,465 @@
-const SHOPIFY_TOKEN = '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';
-const SHOPIFY_STORE = 'sarkarlandmark.myshopify.com';
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sarkar Landmark - Property Listing Form</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; color: #222; }
+  .container { max-width: 800px; margin: 30px auto; padding: 20px; }
+  .header { background: #111; color: #C9A84C; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; }
+  .steps { display: flex; justify-content: space-between; margin-bottom: 24px; }
+  .step { flex: 1; text-align: center; padding: 10px 5px; border-radius: 8px; font-size: 13px; background: #fff; border: 1px solid #ddd; margin: 0 4px; }
+  .step.active { background: #111; color: #C9A84C; border-color: #111; font-weight: bold; }
+  .step.done { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+  .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 15px; font-weight: bold; margin-bottom: 16px; color: #111; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; }
+  .row { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
+  .field { flex: 1; min-width: 200px; }
+  .field label { display: block; font-size: 13px; color: #555; margin-bottom: 5px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; font-family: inherit; }
+  .field textarea { resize: vertical; min-height: 80px; }
+  .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+  .checkbox-group label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+  .nav { display: flex; justify-content: space-between; margin-top: 20px; }
+  .btn { padding: 12px 28px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; font-family: inherit; }
+  .btn-primary { background: #111; color: #C9A84C; font-weight: bold; }
+  .btn-secondary { background: #f0f0f0; color: #333; }
+  .success { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 12px; padding: 30px; text-align: center; }
+  .success h2 { color: #2e7d32; margin-bottom: 10px; }
+  .error-msg { background: #ffebee; border: 1px solid #ef9a9a; border-radius: 8px; padding: 12px; margin-bottom: 16px; color: #c62828; font-size: 13px; }
+  .step-content { display: none; }
+  .step-content.active { display: block; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏢 Sarkar Landmark</h1>
+    <p style="color:#fff;font-size:13px;margin-top:5px;">Property Listing Form — Internal Use Only</p>
+  </div>
+  <div class="steps">
+    <div class="step active" id="s1">১. মূল তথ্য</div>
+    <div class="step" id="s2">২. বিবরণ</div>
+    <div class="step" id="s3">৩. সুবিধা</div>
+    <div class="step" id="s4">৪. লোকেশন</div>
+    <div class="step" id="s5">৫. যোগাযোগ</div>
+  </div>
+  <div id="error-box" class="error-msg" style="display:none;"></div>
 
-export default {
-  async fetch(request) {
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        }
-      });
+  <!-- STEP 1 -->
+  <div class="step-content active" id="step1">
+    <div class="card">
+      <div class="card-title">🏠 সম্পত্তির ধরন ও মূল্য</div>
+      <div class="row">
+        <div class="field"><label>সম্পত্তির ধরন</label>
+          <select id="propertyType">
+            <option value="Flat/Apartment">Flat/Apartment</option>
+            <option value="House">House</option>
+            <option value="Plot">Plot</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Office Space">Office Space</option>
+          </select></div>
+        <div class="field"><label>বিজ্ঞাপনের ধরন</label>
+          <select id="adType">
+            <option value="বিক্রয়">বিক্রয়</option>
+            <option value="ভাড়া">ভাড়া</option>
+          </select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>মূল্য (BDT)</label>
+          <input type="number" id="price" placeholder="যেমন: 7500000"></div>
+        <div class="field"><label>দখলের অবস্থা</label>
+          <select id="possession">
+            <option value="রেডি">রেডি</option>
+            <option value="আন্ডার কন্সট্রাকশন">আন্ডার কন্সট্রাকশন</option>
+          </select></div>
+      </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="negotiable"> মূল্য আলোচনা সাপেক্ষ</label>
+        <label><input type="checkbox" id="rented"> বর্তমানে ভাড়া দেওয়া আছে</label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📐 আয়তন</div>
+      <div class="row">
+        <div class="field"><label>আয়তন — কাগজে (SQFT)</label>
+          <input type="number" id="areaSqft" placeholder="যেমন: 1360"></div>
+        <div class="field"><label>ব্যবহারযোগ্য আয়তন (SQFT)</label>
+          <input type="number" id="usableSqft" placeholder="না জানলে খালি রাখুন"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step-content" id="step2">
+    <div class="card">
+      <div class="card-title">🛏️ রুম বিবরণ</div>
+      <div class="row">
+        <div class="field"><label>বেডরুম</label><input type="number" id="bedrooms" value="3" min="0"></div>
+        <div class="field"><label>বাথরুম</label><input type="number" id="bathrooms" value="3" min="0"></div>
+        <div class="field"><label>বারান্দা</label><input type="number" id="balconies" value="2" min="0"></div>
+      </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="drawing" checked> ড্রইং রুম আছে</label>
+        <label><input type="checkbox" id="dining" checked> ডাইনিং আছে</label>
+        <label><input type="checkbox" id="kitchen" checked> কিচেন আছে</label>
+        <label><input type="checkbox" id="servant"> সার্ভেন্ট রুম আছে</label>
+        <label><input type="checkbox" id="store"> স্টোর রুম আছে</label>
+      </div>
+      <div class="row">
+        <div class="field"><label>কিচেনের ধরন</label>
+          <select id="kitchenType">
+            <option value="ওপেন">ওপেন</option>
+            <option value="ক্লোজড">ক্লোজড</option>
+          </select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🏗️ বিল্ডিং তথ্য</div>
+      <div class="row">
+        <div class="field"><label>তলা নম্বর</label><input type="text" id="floorNo" placeholder="যেমন: ৯তম"></div>
+        <div class="field"><label>মোট তলা</label><input type="number" id="totalFloors" value="10" min="1"></div>
+        <div class="field"><label>বিল্ডিং বয়স</label><input type="text" id="buildingAge" placeholder="৫ বছর"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>দিকমুখী</label>
+          <select id="facing">
+            <option value="দক্ষিণ">দক্ষিণ</option>
+            <option value="উত্তর">উত্তর</option>
+            <option value="পূর্ব">পূর্ব</option>
+            <option value="পশ্চিম">পশ্চিম</option>
+          </select></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step-content" id="step3">
+    <div class="card">
+      <div class="card-title">⚡ ইউটিলিটি</div>
+      <div class="row">
+        <div class="field"><label>গ্যাস</label>
+          <select id="gas">
+            <option value="তিতাস গ্যাস">তিতাস গ্যাস</option>
+            <option value="সিলিন্ডার">সিলিন্ডার</option>
+            <option value="নেই">নেই</option>
+          </select></div>
+        <div class="field"><label>বিদ্যুৎ ব্যাকআপ</label>
+          <select id="electricity">
+            <option value="জেনারেটর">জেনারেটর</option>
+            <option value="IPS">IPS</option>
+            <option value="নেই">নেই</option>
+          </select></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>পানি সরবরাহ</label>
+          <select id="water">
+            <option value="ওয়াসা">ওয়াসা</option>
+            <option value="সাবমার্সিবল">সাবমার্সিবল</option>
+            <option value="দুটোই">দুটোই</option>
+          </select></div>
+        <div class="field"><label>নিরাপত্তা</label>
+          <select id="security">
+            <option value="২৪ ঘণ্টা গার্ড">২৪ ঘণ্টা গার্ড</option>
+            <option value="CCTV">CCTV</option>
+            <option value="দুটোই">দুটোই</option>
+            <option value="নেই">নেই</option>
+          </select></div>
+      </div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="lift" checked> লিফট আছে</label>
+        <label><input type="checkbox" id="cctv"> CCTV আছে</label>
+        <label><input type="checkbox" id="intercom"> ইন্টারকম আছে</label>
+        <label><input type="checkbox" id="kidsPlay"> শিশু খেলার জায়গা</label>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚗 পার্কিং</div>
+      <div class="row">
+        <div class="field"><label>পার্কিং ধরন</label>
+          <select id="parkingType">
+            <option value="কমন পার্কিং">কমন পার্কিং</option>
+            <option value="ডেডিকেটেড">ডেডিকেটেড</option>
+            <option value="নেই">নেই</option>
+          </select></div>
+        <div class="field"><label>পার্কিং সংখ্যা</label>
+          <input type="number" id="parkingCount" value="1" min="0"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌤️ ছাদের সুবিধা</div>
+      <div class="checkbox-group">
+        <label><input type="checkbox" id="pool"> সুইমিং পুল</label>
+        <label><input type="checkbox" id="gym"> জিম/ফিটনেস</label>
+        <label><input type="checkbox" id="coffee"> কফি কর্নার</label>
+        <label><input type="checkbox" id="washroom"> ওয়াশরুম</label>
+        <label><input type="checkbox" id="garden"> ছাদ বাগান</label>
+        <label><input type="checkbox" id="changing"> ড্রেস চেঞ্জিং রুম</label>
+      </div>
+      <div class="row">
+        <div class="field"><label>অন্যান্য ছাদ সুবিধা</label>
+          <input type="text" id="otherRoof" placeholder="যেমন: বারবিকিউ এরিয়া"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step-content" id="step4">
+    <div class="card">
+      <div class="card-title">📍 ঠিকানা</div>
+      <div class="row">
+        <div class="field"><label>এলাকার নাম *</label>
+          <input type="text" id="areaName" placeholder="যেমন: মধ্য পাইকপাড়া"></div>
+        <div class="field"><label>থানা/উপজেলা</label>
+          <input type="text" id="thana" placeholder="যেমন: মিরপুর-১"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>শহর</label>
+          <input type="text" id="city" value="ঢাকা"></div>
+        <div class="field"><label>রাস্তার নাম ও প্রশস্ততা</label>
+          <input type="text" id="road" placeholder="যেমন: তাজমেলন রোড, ২০ ফিট"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🌐 আশেপাশের সুবিধা</div>
+      <div class="row">
+        <div class="field"><label>হাসপাতাল</label><input type="text" id="hospital" placeholder="ল্যাব এইড, ইবনে সিনা"></div>
+        <div class="field"><label>স্কুল/কলেজ</label><input type="text" id="school" placeholder="বাংলা কলেজ — ১০ মিনিট"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>শপিং সেন্টার</label><input type="text" id="shopping" placeholder="সনি স্কয়ার"></div>
+        <div class="field"><label>বাজার/মার্কেট</label><input type="text" id="market" placeholder="নতুন বাজার"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>যাতায়াত সুবিধা</label><input type="text" id="transport" placeholder="মিরপুর ১ বাস স্ট্যান্ড — ৫ মিনিট"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📌 কাছের উল্লেখযোগ্য স্থান</div>
+      <div class="row">
+        <div class="field"><label>ল্যান্ডমার্ক ১</label><input type="text" id="lm1" placeholder="হাতিরঝিল — খুব কাছেই"></div>
+        <div class="field"><label>ল্যান্ডমার্ক ২</label><input type="text" id="lm2" placeholder="মগবাজার — ৫ মিনিট"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>ল্যান্ডমার্ক ৩</label><input type="text" id="lm3" placeholder="মালিবাগ — ৮ মিনিট"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step-content" id="step5">
+    <div class="card">
+      <div class="card-title">👤 বিজ্ঞাপনদাতার তথ্য</div>
+      <div class="row">
+        <div class="field"><label>বিজ্ঞাপনদাতার নাম *</label>
+          <input type="text" id="advName" placeholder="মো. করিম"></div>
+        <div class="field"><label>ফোন/WhatsApp *</label>
+          <input type="text" id="phone" placeholder="+880 1724-556906"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>বিজ্ঞাপনদাতার পরিচয়</label>
+          <select id="advType">
+            <option value="মালিক">মালিক</option>
+            <option value="এজেন্ট">এজেন্ট</option>
+            <option value="ডেভেলপার">ডেভেলপার</option>
+          </select></div>
+        <div class="field" style="display:flex;align-items:flex-end;padding-bottom:8px;">
+          <label><input type="checkbox" id="whatsapp"> &nbsp;WhatsApp-এ যোগাযোগ সম্ভব</label>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🖼️ মিডিয়া</div>
+      <div class="field" style="margin-bottom:14px;"><label>ছবির URL (প্রতিটি আলাদা লাইনে)</label>
+        <textarea id="photos" placeholder="https://cdn.shopify.com/photo1.jpg"></textarea></div>
+      <div class="field"><label>ভিডিও ট্যুর URL</label>
+        <input type="text" id="video" placeholder="https://youtube.com/watch?v=..."></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📝 অতিরিক্ত তথ্য</div>
+      <div class="field" style="margin-bottom:14px;"><label>বিশেষ নোট/হাইলাইটস</label>
+        <textarea id="notes" placeholder="যেমন: ফিটিংস অত্যন্ত সুন্দর..."></textarea></div>
+      <div class="field"><label>অতিরিক্ত ট্যাগ (কমা দিয়ে আলাদা)</label>
+        <input type="text" id="tags" placeholder="লেকভিউ, কর্নার ফ্ল্যাট, নতুন লিস্টিং"></div>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="step-content" id="stepSuccess">
+    <div class="success">
+      <h2>✅ সফলভাবে Publish হয়েছে!</h2>
+      <p id="successMsg" style="margin:10px 0;color:#333;"></p>
+      <a id="productLink" href="#" target="_blank">👉 Shopify-তে Product দেখুন</a>
+      <br><br>
+      <button class="btn btn-primary" onclick="resetForm()">+ নতুন বিজ্ঞাপন দিন</button>
+    </div>
+  </div>
+
+  <div class="nav" id="navButtons">
+    <button class="btn btn-secondary" id="prevBtn" onclick="prevStep()" style="display:none;">← আগে</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">পরবর্তী →</button>
+  </div>
+</div>
+
+<script>
+  // ✅ Cloudflare Worker URL
+  const WORKER_URL = 'https://silent-grass-d288.sarkarlandmark.workers.dev';
+  const SHOP = 'sarkarlandmark';
+  let currentStep = 1;
+
+  function showStep(n) {
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+    document.querySelectorAll('.step').forEach((el, i) => {
+      el.classList.remove('active', 'done');
+      if (i + 1 === n) el.classList.add('active');
+      else if (i + 1 < n) el.classList.add('done');
+    });
+    document.getElementById('prevBtn').style.display = n > 1 ? 'block' : 'none';
+    document.getElementById('nextBtn').textContent = n === 5 ? '✓ জমা দিন' : 'পরবর্তী →';
+    hideError();
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = msg;
+    box.style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function hideError() { document.getElementById('error-box').style.display = 'none'; }
+
+  function validate() {
+    if (currentStep === 4 && !document.getElementById('areaName').value.trim()) {
+      showError('এলাকার নাম আবশ্যক!'); return false;
     }
+    if (currentStep === 5) {
+      if (!document.getElementById('advName').value.trim()) { showError('বিজ্ঞাপনদাতার নাম আবশ্যক!'); return false; }
+      if (!document.getElementById('phone').value.trim()) { showError('ফোন নম্বর আবশ্যক!'); return false; }
+    }
+    return true;
+  }
+
+  function nextStep() {
+    if (!validate()) return;
+    if (currentStep === 5) { submitForm(); return; }
+    currentStep++;
+    showStep(currentStep);
+  }
+
+  function prevStep() {
+    if (currentStep > 1) { currentStep--; showStep(currentStep); }
+  }
+
+  function gv(id) { return document.getElementById(id).value.trim(); }
+  function gc(id) { return document.getElementById(id).checked; }
+
+  async function submitForm() {
+    hideError();
+    const btn = document.getElementById('nextBtn');
+    btn.textContent = '⏳ Publish হচ্ছে...';
+    btn.disabled = true;
+
+    const area = gv('areaName');
+    const type = gv('propertyType');
+    const adType = gv('adType');
+    const price = gv('price');
+    const title = `${area} | ${type} | ${adType}`;
+
+    const amenities = [];
+    if (gc('lift')) amenities.push('লিফট');
+    if (gc('cctv')) amenities.push('CCTV');
+    if (gc('intercom')) amenities.push('ইন্টারকম');
+    if (gc('kidsPlay')) amenities.push('শিশু খেলার জায়গা');
+    if (gc('pool')) amenities.push('সুইমিং পুল');
+    if (gc('gym')) amenities.push('জিম');
+    if (gc('coffee')) amenities.push('কফি কর্নার');
+    if (gc('garden')) amenities.push('ছাদ বাগান');
+
+    const rooms = [];
+    if (gc('drawing')) rooms.push('ড্রইং রুম');
+    if (gc('dining')) rooms.push('ডাইনিং');
+    if (gc('kitchen')) rooms.push('কিচেন');
+    if (gc('servant')) rooms.push('সার্ভেন্ট রুম');
+    if (gc('store')) rooms.push('স্টোর রুম');
+
+    const body = `
+<h2>${title}</h2><hr>
+<h3>📋 মূল তথ্য</h3>
+<p><b>ধরন:</b> ${type} | <b>বিজ্ঞাপন:</b> ${adType} | <b>মূল্য:</b> ৳${price} BDT ${gc('negotiable') ? '(আলোচনা সাপেক্ষ)' : ''}</p>
+<p><b>দখল:</b> ${gv('possession')} | <b>আয়তন:</b> ${gv('areaSqft')} SQFT</p>
+${gc('rented') ? '<p>⚠️ বর্তমানে ভাড়া দেওয়া আছে</p>' : ''}
+<hr><h3>🛏️ রুম</h3>
+<p><b>বেডরুম:</b> ${gv('bedrooms')} | <b>বাথরুম:</b> ${gv('bathrooms')} | <b>বারান্দা:</b> ${gv('balconies')}</p>
+<p><b>সুবিধা:</b> ${rooms.join(', ')} | <b>কিচেন:</b> ${gv('kitchenType')}</p>
+<p><b>তলা:</b> ${gv('floorNo')} / ${gv('totalFloors')} | <b>বয়স:</b> ${gv('buildingAge')} | <b>দিক:</b> ${gv('facing')}</p>
+<hr><h3>⚡ সুবিধা</h3>
+<p><b>গ্যাস:</b> ${gv('gas')} | <b>বিদ্যুৎ:</b> ${gv('electricity')} | <b>পানি:</b> ${gv('water')} | <b>নিরাপত্তা:</b> ${gv('security')}</p>
+<p><b>অন্যান্য:</b> ${amenities.join(', ') || 'প্রযোজ্য নয়'}</p>
+<p><b>পার্কিং:</b> ${gv('parkingType')} (${gv('parkingCount')} টি)</p>
+<hr><h3>📍 লোকেশন</h3>
+<p>${area}, ${gv('thana')}, ${gv('city')}</p>
+${gv('road') ? '<p><b>রাস্তা:</b> ' + gv('road') + '</p>' : ''}
+${gv('hospital') ? '<p><b>হাসপাতাল:</b> ' + gv('hospital') + '</p>' : ''}
+${gv('transport') ? '<p><b>যাতায়াত:</b> ' + gv('transport') + '</p>' : ''}
+${gv('lm1') ? '<p><b>ল্যান্ডমার্ক:</b> ' + [gv('lm1'),gv('lm2'),gv('lm3')].filter(Boolean).join(' | ') + '</p>' : ''}
+<hr><h3>👤 যোগাযোগ</h3>
+<p><b>নাম:</b> ${gv('advName')} | <b>ফোন:</b> ${gv('phone')} | <b>পরিচয়:</b> ${gv('advType')}</p>
+${gc('whatsapp') ? '<p>✅ WhatsApp-এ যোগাযোগ সম্ভব</p>' : ''}
+${gv('video') ? '<p><b>ভিডিও:</b> <a href="' + gv('video') + '">' + gv('video') + '</a></p>' : ''}
+${gv('notes') ? '<hr><h3>📝 নোট</h3><p>' + gv('notes') + '</p>' : ''}`;
+
+    const photoUrls = gv('photos').split('\n').filter(u => u.trim()).map(u => ({ src: u.trim() }));
+    const tagList = [...gv('tags').split(',').map(t => t.trim()).filter(Boolean), type, adType, area];
+
+    const productData = {
+      product: {
+        title,
+        body_html: body,
+        product_type: type,
+        tags: tagList.join(', '),
+        status: 'active',
+        variants: [{ price: price || '0', requires_shipping: false }],
+        images: photoUrls
+      }
+    };
 
     try {
-      const body = await request.json();
-      
-      const res = await fetch(`https://${SHOPIFY_STORE}/admin/api/2024-01/products.json`, {
+      const res = await fetch(WORKER_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Shopify-Access-Token': SHOPIFY_TOKEN,
-        },
-        body: JSON.stringify(body)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData)
       });
 
       const data = await res.json();
-      
-      return new Response(JSON.stringify(data), {
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        }
-      });
+
+      if (data.product && data.product.id) {
+        document.getElementById('successMsg').textContent = `"${title}" সফলভাবে Shopify-তে publish হয়েছে!`;
+        document.getElementById('productLink').href = `https://admin.shopify.com/store/${SHOP}/products/${data.product.id}`;
+        document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+        document.getElementById('stepSuccess').classList.add('active');
+        document.getElementById('navButtons').style.display = 'none';
+        document.querySelectorAll('.step').forEach(el => el.classList.remove('active'));
+      } else {
+        showError('সমস্যা: ' + JSON.stringify(data.errors || data));
+        btn.textContent = '✓ জমা দিন';
+        btn.disabled = false;
+      }
     } catch (err) {
-      return new Response(JSON.stringify({ error: err.message }), {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        }
-      });
+      showError('Connection error: ' + err.message);
+      btn.textContent = '✓ জমা দিন';
+      btn.disabled = false;
     }
   }
-};
+
+  function resetForm() {
+    document.getElementById('navButtons').style.display = 'flex';
+    currentStep = 1;
+    showStep(1);
+  }
+</script>
+</body>
+</html>
